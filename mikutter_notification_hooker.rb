@@ -6,7 +6,7 @@ Plugin.create(:notify_hooker) do
     def self.defnotify(label, kind)
       settings (label) do
         input '実行するコマンド', "notify_hooked_command_#{kind}".to_sym
-        boolean 'フォーマット置換', "notify_hooked_command_format_#{kind}".to_sym
+        boolean 'フォーマット置換 (非推奨: OSコマンドインジェクションの恐れがあります)', "notify_hooked_command_format_#{kind}".to_sym
       end
     end
 
@@ -19,8 +19,13 @@ Plugin.create(:notify_hooker) do
     defnotify 'ダイレクトメッセージ受信', :direct_message
 
     boolean "コマンド実行時のエラーをタイムラインに表示する", :notify_hooked_command_does_show_err_in_bot
+    boolean "ツイート内のバッククオートを排除する (推奨)", :notify_hooked_command_does_replace_backquote
   end
 
+  on_boot do |service|
+    UserConfig[:notify_hooked_command_does_replace_backquote] ||= true
+  end
+  
   onupdate do |post, raw_messages|
     messages = Plugin.filtering(:show_filter, raw_messages.select{ |m| not(m.from_me? or m.to_me?) and m[:created] > DEFINED_TIME }).first
     if (not(messages.empty?) and UserConfig[:notify_hooked_command_friend_timeline])
@@ -71,7 +76,7 @@ Plugin.create(:notify_hooker) do
     if (not(messages.empty?) and UserConfig[:notify_hooked_command_retweeted])
       messages.each{ |message|
         self.exec_command(UserConfig[:notify_hooked_command_retweeted],
-                          UserConfig[:notify_hooked_command_format_retweeted]?{"\#\<\<by\>\>" => message[:user].idname, "\#\<\<post\>\>" => message.body}:{})
+                          UserConfig[:notify_hooked_command_format_retweeted]?{"\#\<\<user\>\>" => message[:user].idname, "\#\<\<post\>\>" => message.body}:{})
       }
     end
   end
@@ -91,7 +96,7 @@ Plugin.create(:notify_hooker) do
       cmd = command
       begin
         replace_table.each{ |target, val|
-          cmd = cmd.gsub(target, val)
+          cmd = cmd.gsub(target, (UserConfig[:notify_hooked_command_does_replace_backquote]?val.gsub(/`/, ''): (val)))
         }
         Process.detach(spawn(cmd))
       rescue Errno::ENOENT => e
