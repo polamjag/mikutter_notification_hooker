@@ -1,7 +1,7 @@
 # mikutter notification hooker: みくったー通知フックプラグイン
 
 ## 導入方法
-`cd ~/.mikutter/plugin ; git clone https://github.com/polamjag/mikutter_notification_hooker.rb`
+`cd ~/.mikutter/plugin ; git clone https://github.com/polamjag/mikutter_notification_hooker.git`
 
 ## つかいかた
 * 設定画面に表示される "コマンドフック" ペインで，実行したいコマンドを入力します．
