@@ -1,0 +1,11 @@
+---
+slug: mikutter_notification_hooker
+depends:
+  mikutter: "3.0.0.alpha4"
+  plugin:
+  - gtk
+version: "1.0"
+author: "polamjag"
+name: "notification hooker"
+description: "通知イベントにフックしてコマンドを実行"
+
